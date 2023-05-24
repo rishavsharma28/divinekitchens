@@ -19,7 +19,7 @@ const syncBills = async (req:any) => {
     console.log("Body: "+body.toString())
     console.log("Xero Signature: "+req.headers.get('x-xero-signature'));
     // Create our HMAC hash of the body, using our webhooks key
-    var sha256 = cryptojs.HmacSHA256(JSON.stringify(body), process.env.NEXT_PUBLIC_XERO_WEBHOOK_KEY);
+    var sha256 = cryptojs.HmacSHA256(body.toString(), process.env.NEXT_PUBLIC_XERO_WEBHOOK_KEY);
     var hmac = cryptojs.enc.Base64.stringify(sha256);
     console.log("Resp Signature: "+hmac)
     
