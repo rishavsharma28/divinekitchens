@@ -9,14 +9,13 @@ const moment = require('moment-timezone'); //moment-timezone
     .from('settings')
     .select()
     .eq('id', 1);
-    
-    if (error){
-      return null;
-    }
+
+    console.log('Supabase settings', data)
 
     if (data){
       return data[0];
     }
+    return null;
   };
 
   const refreshToken = async(settings) => {
