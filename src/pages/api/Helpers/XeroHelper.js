@@ -21,6 +21,7 @@ const moment = require('moment-timezone'); //moment-timezone
   };
 
   const refreshToken = async(settings) => {
+    console.log("refreshing token")
     try {
 
       if (settings) {
@@ -41,6 +42,7 @@ const moment = require('moment-timezone'); //moment-timezone
         const response = await fetch("https://identity.xero.com/connect/token", requestOptions)
           .then(response => response.json())
           .catch(error => console.log('error', error));
+          console.log("refreshing token response", response)
 
         const time = moment().tz(timezone).format('YYYY-MM-DD HH:mm:ss');
         const { error } = await supabase
@@ -53,10 +55,19 @@ const moment = require('moment-timezone'); //moment-timezone
           })
 
         if (error) {
+          console.log("supabase error on refresh", error)
+
           return {
             error: true,
           }
         } else {
+          console.log("return response", {
+            access_token: response.access_token,
+            refresh_token: response.refresh_token,
+            token_last_refreshed: time,
+            tenant_id: settings.tenant_id
+          })
+
           return {
             access_token: response.access_token,
             refresh_token: response.refresh_token,
