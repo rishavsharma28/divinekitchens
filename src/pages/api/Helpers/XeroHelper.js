@@ -39,11 +39,12 @@ const moment = require('moment-timezone'); //moment-timezone
           headers: myHeaders,
           body: urlencoded,
         };
-
+        console.log('urlencoded', urlencoded)
         const response = await fetch("https://identity.xero.com/connect/token", requestOptions)
           .then(response => response.json())
           .catch(error => console.log('error', error));
-          console.log("refreshing token response", response)
+
+        console.log("refreshing token response", response)
 
         const time = moment().tz(timezone).format('YYYY-MM-DD HH:mm:ss');
         const { error } = await supabase
