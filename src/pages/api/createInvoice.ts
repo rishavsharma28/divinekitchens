@@ -3,7 +3,8 @@ import { apisWithVaribales } from "./Helpers/MondayHelper";
 import { createXeroInvoice } from "./Helpers/XeroHelper";
 import { invoiceBoardId, mondayApiKey, redisUrl, timezone } from "../../../config";
 import { supabase } from "../../../supabase";
-import type { NextFetchEvent, NextRequest, NextResponse } from 'next/server';
+import type { NextFetchEvent, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 
 export const config = {
