@@ -1,10 +1,17 @@
-import axios from 'axios';
 import moment from 'moment';
-import { timezone, invoiceBoardId, redisUrl } from "../../../config";
+import { timezone, invoiceBoardId } from "../../../config";
 import { getBills } from "./Helpers/XeroHelper";
 import { apisWithVaribales, api } from "./Helpers/MondayHelper";
+import type { NextFetchEvent, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
-const invoiceStatus = async (req, res) => {
+export const config = {
+    runtime: 'edge', // this is a pre-requisite
+    regions: ['iad1'], // only execute this function on iad1
+};
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function fetchInvoices() {
     try {
         const date = moment().tz(timezone).subtract(1, 'days');
         let url = 'https://api.xero.com/api.xro/2.0/Invoices?';
@@ -14,11 +21,11 @@ const invoiceStatus = async (req, res) => {
         }
         let invoices = await getBills(url);
         if (invoices.length) {
-            invoices.forEach(async (invoice) => {
+            invoices.forEach(async (invoice:any) => {
                 let columnsIdsQuery = `query {boards(ids: ${invoiceBoardId}) {columns {id title}}}`;
                 let columnsIds = await api(columnsIdsQuery);
-                let invoiceId = columnsIds?.data?.boards?.length && columnsIds?.data?.boards[0]?.columns?.find(column => column.title == 'Invoice ID')?.id;
-                let statusId = columnsIds?.data?.boards?.length && columnsIds?.data?.boards[0]?.columns?.find(column => column.title == 'Status')?.id;
+                let invoiceId = columnsIds?.data?.boards?.length && columnsIds?.data?.boards[0]?.columns?.find((column:any) => column.title == 'Invoice ID')?.id;
+                let statusId = columnsIds?.data?.boards?.length && columnsIds?.data?.boards[0]?.columns?.find((column:any) => column.title == 'Status')?.id;
 
                 const invoiceIdCheckQuery = `query {items_by_column_values (board_id: ${invoiceBoardId}, column_id: \"${invoiceId}\", column_value: \"${invoice.InvoiceID}\") {id name state column_values {id value title text} }}`;
                 let savedInvoice = await api(invoiceIdCheckQuery);
@@ -39,11 +46,18 @@ const invoiceStatus = async (req, res) => {
                 }
             });
         }
-        res.send("Done")
     } catch (err) {
-        console.log({ err })
-        return res.status(403).json({ output: "The caller does not have permission" });
+        console.log("The caller does not have permission");
     }
+    await wait(10000);
+    return;
 };
 
-export default invoiceStatus;
+export default (request: NextRequest,  context: NextFetchEvent ) => {
+    
+    context.waitUntil(fetchInvoices());
+
+    return NextResponse.json({
+        name: `Hello, from ${request.url} I'm now an Edge Function!`,
+    });
+};

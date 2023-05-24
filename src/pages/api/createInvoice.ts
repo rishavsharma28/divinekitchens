@@ -91,7 +91,7 @@ async function fetchInvoices() {
 
 export default (request: NextRequest,  context: NextFetchEvent ) => {
     
-    context.waitUntil(fetchInvoices().then((json) => console.log({ json })));
+    context.waitUntil(fetchInvoices());
 
     return NextResponse.json({
         name: `Hello, from ${request.url} I'm now an Edge Function!`,
