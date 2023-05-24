@@ -89,7 +89,6 @@ export default (request: NextRequest,  context: NextFetchEvent ) => {
 
     return NextResponse.json({
         status: 200,
-        data: request,
     });
 };
 
