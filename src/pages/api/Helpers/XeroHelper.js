@@ -5,6 +5,8 @@ import { timezone } from "../../../../config";
 const moment = require('moment-timezone'); //moment-timezone
 
   export const fetchSettings = async() =>  {
+    console.log('fetching supabase settings')
+
     const { data, error } = await supabase
     .from('settings')
     .select()
