@@ -1,5 +1,5 @@
 import { supabase } from "../../../supabase";
-
+import base64 from 'base-64';
 
 const refreshToken = async(settings) => {
     console.log("refreshing token", settings)
