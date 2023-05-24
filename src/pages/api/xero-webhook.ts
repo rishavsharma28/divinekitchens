@@ -88,6 +88,7 @@ export default (request: NextRequest,  context: NextFetchEvent ) => {
     context.waitUntil(syncBills(request));
 
     return NextResponse.json({
+        status: 200,
         data: request,
     });
 };
