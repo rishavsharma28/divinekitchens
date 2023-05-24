@@ -1,10 +1,15 @@
 import base64 from 'base-64';
-import { supabase } from "../../../../supabase";
 import { timezone } from "../../../../config";
+import { createClient } from "@supabase/supabase-js";
+
 
 const moment = require('moment-timezone'); //moment-timezone
 
   export const fetchSettings = async() =>  {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    supabase = createClient(supabaseUrl, supabaseKey);
     console.log('fetching supabase settings')
 
     const { data, error } = await supabase
