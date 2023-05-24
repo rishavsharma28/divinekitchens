@@ -16,7 +16,6 @@ const createInvoice = async (req, res) => {
         settings =  data[0];
     }
 
-    try {
         let todayDate = moment().format("YYYY-MM-DD")
         let query = `query {items_by_column_values (board_id: ${invoiceBoardId}, column_id: \"invoice_sent\", column_value: \"${todayDate}\") {id name group { title } state column_values {id value title text} }}`
         let mondayData = await fetch("https://api.monday.com/v2", {
@@ -72,10 +71,6 @@ const createInvoice = async (req, res) => {
             }
         });
         res.send("Done!");
-    } catch (err) {
-        console.log({ err })
-        return res.status(403).json({ output: "Something went wrong" });
-    }
 };
 
 export default createInvoice;
