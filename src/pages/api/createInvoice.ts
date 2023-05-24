@@ -74,8 +74,6 @@ export default async (request: NextRequest) => {
             console.log( element?.name, ":- Invoice id already exists or Payment is CA")
         }
     });
-    return NextResponse.json({
-        name: `Hello, from ${request.url} I'm now an Edge Function!`,
-    });
+    return NextResponse.next();
 };
 
