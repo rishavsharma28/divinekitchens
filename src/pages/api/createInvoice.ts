@@ -5,6 +5,13 @@ import { invoiceBoardId, mondayApiKey, redisUrl, timezone } from "../../../confi
 import { supabase } from "../../../supabase";
 import { NextRequest, NextResponse } from 'next/server';
 
+
+export const config = {
+    runtime: 'edge', // this is a pre-requisite
+    regions: ['iad1'], // only execute this function on iad1
+  };
+ 
+  
 export default async (request: NextRequest) => {
     
     const { data, error } = await supabase
