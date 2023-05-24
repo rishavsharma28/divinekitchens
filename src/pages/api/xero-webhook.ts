@@ -16,10 +16,10 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const syncBills = async (req:any) => {
     console.log(req.headers)
     const body = await req.json();
-    console.log("Body: "+body.toString())
+    const rawBody = JSON.stringify(body).split(':').join(': ').split(': [').join(':[').split(',"entropy"').join(', "entropy"')
     console.log("Xero Signature: "+req.headers.get('x-xero-signature'));
     // Create our HMAC hash of the body, using our webhooks key
-    var sha256 = cryptojs.HmacSHA256(body.toString(), process.env.NEXT_PUBLIC_XERO_WEBHOOK_KEY);
+    var sha256 = cryptojs.HmacSHA256(rawBody, process.env.NEXT_PUBLIC_XERO_WEBHOOK_KEY);
     var hmac = cryptojs.enc.Base64.stringify(sha256);
     console.log("Resp Signature: "+hmac)
     
