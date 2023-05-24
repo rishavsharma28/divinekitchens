@@ -27,17 +27,12 @@ const moment = require('moment-timezone'); //moment-timezone
   }
 
   const refreshToken = async(settings) => {
-    console.log("refreshing token", settings)
-    try {
-      
       if (settings) {
         console.log('Calling reset token');
         var myHeaders = new Headers();
         myHeaders.append("Accept", "*");
         myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
         myHeaders.append("Authorization", "Basic " + base64.encode(process.env.NEXT_PUBLIC_XERO_CLIENT_ID + ":" + process.env.NEXT_PUBLIC_XERO_SECRET));
-        
-        console.log('Authorization', "Basic " + base64.encode(process.env.NEXT_PUBLIC_XERO_CLIENT_ID + ":" + process.env.NEXT_PUBLIC_XERO_SECRET));
        
         var urlencoded = new URLSearchParams();
         urlencoded.append("grant_type", "refresh_token");
@@ -48,7 +43,6 @@ const moment = require('moment-timezone'); //moment-timezone
           headers: myHeaders,
           body: urlencoded,
         };
-        console.log('urlencoded', urlencoded)
         
         const response = await refreshApi(requestOptions);
 
@@ -88,15 +82,7 @@ const moment = require('moment-timezone'); //moment-timezone
       } else {
         console.log('Calling reset else part');
       }
-
-
-    } catch (error) {
-      console.log('Try catch', error)
-
-      return {
-        error: true,
-      }
-    }
+   
   }
 
   export const getBills = async(url) => {
