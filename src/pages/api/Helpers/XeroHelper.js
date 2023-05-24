@@ -4,22 +4,22 @@ import { timezone } from "../../../../config";
 
 const moment = require('moment-timezone'); //moment-timezone
 
-export default class XeroHelper {
-  constructor() {
-
-  }
-
-  async fetchSettings() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/supabase/settings/single`).then(
-      (res) => res.json()
-    ).catch(error => console.log('Supabase error', error));
-    if (response.data) {
-      return response.data;
+  export const fetchSettings = async() =>  {
+    const { data, error } = await supabase
+    .from('settings')
+    .select()
+    .eq('id', 1);
+    
+    if (error){
+      return null;
     }
-    return null;
+
+    if (data){
+      return data[0];
+    }
   };
 
-  async refreshToken(settings) {
+  const refreshToken = async(settings) => {
     try {
 
       if (settings) {
@@ -75,10 +75,10 @@ export default class XeroHelper {
     }
   }
 
-  async getBills(url) {
-    let settings = await this.fetchSettings();
+  export const getBills = async(url) => {
+    let settings = await fetchSettings();
     if (settings) {
-      settings = await this.refreshToken(settings);
+      settings = await refreshToken(settings);
     }
     let connectionHeaders = new Headers();
     connectionHeaders.append("Accept", "application/json");
@@ -104,12 +104,7 @@ export default class XeroHelper {
 
   }
 
-  async fetchContact(name) {
-    let settings = await this.fetchSettings();
-    if (settings) {
-      settings = await this.refreshToken(settings);
-    }
-
+  export const fetchContact = async(name, settings) => {
     let connectionHeaders = new Headers();
     connectionHeaders.append("Accept", "application/json");
     connectionHeaders.append("Content-Type", "application/json");
@@ -131,64 +126,64 @@ export default class XeroHelper {
 
 
 
-  async createInvoice(data) {
-    let settings = await this.fetchSettings();
+  export const createXeroInvoice = async(data) => {
+    let settings = await fetchSettings();
     if (settings) {
-      settings = await this.refreshToken(settings);
-    }
-
-    let connectionHeaders = new Headers();
-    connectionHeaders.append("Accept", "application/json");
-    connectionHeaders.append("Content-Type", "application/json");
-    connectionHeaders.append("Authorization", "Bearer " + settings.access_token);
-    connectionHeaders.append("Xero-Tenant-Id", settings.tenant_id);
-    let contact = await this.fetchContact(data?.element?.name);
-    let contactData;
-    if (contact) {
-      contactData = {
-        ContactID: contact.ContactID,
-        EmailAddress: data?.email,
-      }
-    } else {
-      contactData = {
-        name: data?.element?.name,
-        EmailAddress: data?.email,
-      }
-    }
-    let bodyData = {
-      Invoices: [
-        {
-          Type: "ACCREC",
-          Contact: contactData,
-          LineItems: [
-            {
-              Description: data?.stage ? data?.stage : data?.element?.name,
-              Quantity: 1,
-              UnitAmount: data.amount,
-              AccountCode: "200",
-              TaxType: "NONE",
-              LineAmount: data.amount
-            }
-          ],
-          Date: data.date,
-          DueDate: data.dueDate,
-          Reference: "Website Design",
-          Status: "AUTHORISED",
-          SentToContact: true,
+      settings = await refreshToken(settings);
+      let connectionHeaders = new Headers();
+      connectionHeaders.append("Accept", "application/json");
+      connectionHeaders.append("Content-Type", "application/json");
+      connectionHeaders.append("Authorization", "Bearer " + settings.access_token);
+      connectionHeaders.append("Xero-Tenant-Id", settings.tenant_id);
+      let contact = await fetchContact(data?.element?.name, settings);
+      let contactData;
+      if (contact) {
+        contactData = {
+          ContactID: contact.ContactID,
+          EmailAddress: data?.email,
         }
-      ]
-    };
+      } else {
+        contactData = {
+          name: data?.element?.name,
+          EmailAddress: data?.email,
+        }
+      }
+      let bodyData = {
+        Invoices: [
+          {
+            Type: "ACCREC",
+            Contact: contactData,
+            LineItems: [
+              {
+                Description: data?.stage ? data?.stage : data?.element?.name,
+                Quantity: 1,
+                UnitAmount: data.amount,
+                AccountCode: "200",
+                TaxType: "NONE",
+                LineAmount: data.amount
+              }
+            ],
+            Date: data.date,
+            DueDate: data.dueDate,
+            Reference: "Website Design",
+            Status: "AUTHORISED",
+            SentToContact: true,
+          }
+        ]
+      };
 
 
-    let requestOptions = {
-      method: 'POST',
-      headers: connectionHeaders,
-      body: JSON.stringify(bodyData),
-    };
+      let requestOptions = {
+        method: 'POST',
+        headers: connectionHeaders,
+        body: JSON.stringify(bodyData),
+      };
 
-    const response = await fetch('https://api.xero.com/api.xro/2.0/Invoices', requestOptions)
-      .then(res => res.json())
-      .catch(error => console.log('error', error));
-    return response
+      const response = await fetch('https://api.xero.com/api.xro/2.0/Invoices', requestOptions)
+        .then(res => res.json())
+        .catch(error => console.log('error', error));
+      return response
+    } else {
+      return null;
+    }
   }
-}

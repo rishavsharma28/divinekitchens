@@ -1,5 +1,5 @@
-import XeroHelper from "./Helpers/XeroHelper";
-import MondayHelper from "./Helpers/MondayHelper";
+import { getBills } from "./Helpers/XeroHelper";
+import { apisWithVaribales, api } from "./Helpers/MondayHelper";
 import moment from "moment-timezone";
 import { billBoardId, timezone, billGroupId } from "../../../config";
 
@@ -13,7 +13,6 @@ const syncBills = async (req, res) => {
     const events =  req?.body?.events?.length ? req?.body?.events[0] : null;
     if (events && events.eventCategory == 'INVOICE'){
         const invoice_id = events.resourceId;
-        let xeroHelper = new XeroHelper();
         let url = 'https://api.xero.com/api.xro/2.0/Invoices?';
         let type = 'ACCPAY';
         if (invoice_id){
@@ -23,11 +22,10 @@ const syncBills = async (req, res) => {
           url += 'where=Type="ACCPAY"';
         }
        
-        let invoices = await xeroHelper.getBills(url);
+        let invoices = await getBills(url);
         invoices.forEach(async(invoice) => {
-            let mondayHelper = new MondayHelper();
             let columnsIdsQuery = `query {boards(ids: ${billBoardId}) {columns {id title}}}`;
-            let columnsIds = await mondayHelper.api(columnsIdsQuery);
+            let columnsIds = await api(columnsIdsQuery);
          
             let amountId = columnsIds?.data?.boards?.length && columnsIds?.data?.boards[0]?.columns?.find(column => column.title == 'Amount')?.id;
             let statusId = columnsIds?.data?.boards?.length && columnsIds?.data?.boards[0]?.columns?.find(column => column.title == 'Status')?.id;
@@ -38,10 +36,10 @@ const syncBills = async (req, res) => {
     
             // check if invoice is already on monday
             const invoiceIdCheckQuery = `query {items_by_column_values (board_id: ${billBoardId}, column_id: \"${xeroId}\", column_value: \"${invoice.InvoiceID}\") {id name state column_values {id value title text} }}`;
-            let savedInvoice = await mondayHelper.api(invoiceIdCheckQuery);
+            let savedInvoice = await api(invoiceIdCheckQuery);
 
             if (savedInvoice?.data?.items_by_column_values?.length == 0){
-                const item = await mondayHelper.api(createQuery);
+                const item = await api(createQuery);
                 if (item?.data?.create_item?.id){
                     const id = item?.data?.create_item?.id;
                     let status = 'To Be Paid'
@@ -55,7 +53,7 @@ const syncBills = async (req, res) => {
                         myColumnValues: `{\"${amountId}\" : \"${invoice.Total}\", \"${xeroId}\" : \"${invoice.InvoiceID}\", \"${statusId}\" : \"${status}\", \"${dueDateId}\" : \"${moment(invoice.DueDateString).format('YYYY-MM-DD')}\", \"${supplierId}\" : \"${invoice.Contact.ContactID}\"}`
                     });
                     
-                    const column = await mondayHelper.apisWithVaribales(updateQuery, variables);
+                    const column = await apisWithVaribales(updateQuery, variables);
                     console.log("Items created on monday", invoice?.Contact?.Name)
                 }
             } else {
@@ -71,7 +69,7 @@ const syncBills = async (req, res) => {
                     myItemId: parseInt(id),
                     myColumnValues: `{\"${amountId}\" : \"${invoice.Total}\", \"${xeroId}\" : \"${invoice.InvoiceID}\", \"${statusId}\" : \"${status}\", \"${dueDateId}\" : \"${moment(invoice.DueDateString).format('YYYY-MM-DD')}\", \"${supplierId}\" : \"${invoice.Contact.ContactID}\"}`
                 });
-                const column = await mondayHelper.apisWithVaribales(updateQuery, variables);
+                const column = await apisWithVaribales(updateQuery, variables);
                 console.log("Items updated on monday", invoice?.Contact?.Name)
             }
             

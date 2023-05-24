@@ -1,5 +1,5 @@
-import XeroHelper from "./Helpers/XeroHelper";
-import MondayHelper from "./Helpers/MondayHelper";
+import { getBills } from "./Helpers/XeroHelper";
+import { apisWithVaribales, api } from "./Helpers/MondayHelper";
 import moment from "moment-timezone";
 import { billBoardId, timezone, billGroupId } from "../../../config";
 
@@ -9,7 +9,6 @@ const xeroQueue = new Queue('xeroQueue', 'redis://127.0.0.1:6379');
 
 const syncBills = async (req, res) => {
     const date = moment().tz(timezone);
-    let xeroHelper = new XeroHelper();
     let url = 'https://api.xero.com/api.xro/2.0/Invoices?';
     let type = 'ACCPAY';
     if (type){
@@ -18,11 +17,10 @@ const syncBills = async (req, res) => {
     if (date){
         url += 'AND Date=DateTime('+date.format('YYYY')+', '+date.format('MM')+', '+date.format('DD')+')';
     }
-    let invoices = await xeroHelper.getBills(url);
+    let invoices = await getBills(url);
     invoices.forEach(async(invoice) => {
-        let mondayHelper = new MondayHelper();
         let columnsIdsQuery = `query {boards(ids: ${billBoardId}) {columns {id title}}}`;
-        let columnsIds = await mondayHelper.api(columnsIdsQuery);
+        let columnsIds = await api(columnsIdsQuery);
      
         let amountId = columnsIds?.data?.boards?.length && columnsIds?.data?.boards[0]?.columns?.find(column => column.title == 'Amount')?.id;
         let statusId = columnsIds?.data?.boards?.length && columnsIds?.data?.boards[0]?.columns?.find(column => column.title == 'Status')?.id;
@@ -33,9 +31,9 @@ const syncBills = async (req, res) => {
 
         // check if invoice is already on monday
         const invoiceIdCheckQuery = `query {items_by_column_values (board_id: ${billBoardId}, column_id: \"${xeroId}\", column_value: \"${invoice.InvoiceID}\") {id name state column_values {id value title text} }}`;
-        let savedInvoice = await mondayHelper.api(invoiceIdCheckQuery);
+        let savedInvoice = await api(invoiceIdCheckQuery);
         if (savedInvoice?.data?.items_by_column_values?.length == 0){
-            const item = await mondayHelper.api(createQuery);
+            const item = await api(createQuery);
             if (item?.data?.create_item?.id){
                 const id = item?.data?.create_item?.id;
                 let updateQuery = "mutation ($myBoardId:Int!, $myItemId:Int!, $myColumnValues:JSON!) { change_multiple_column_values(item_id:$myItemId, board_id:$myBoardId, column_values: $myColumnValues) { id }}";
@@ -46,7 +44,7 @@ const syncBills = async (req, res) => {
                 });
                 
                 console.log(updateQuery)
-                const column = await mondayHelper.apisWithVaribales(updateQuery, variables);
+                const column = await apisWithVaribales(updateQuery, variables);
             }
         }
         
