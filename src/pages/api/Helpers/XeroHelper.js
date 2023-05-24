@@ -153,17 +153,15 @@ const moment = require('moment-timezone'); //moment-timezone
   export const createXeroInvoice = async(data) => {
     console.log("createXeroInvoice helper:  creating invoice on xero")
     let settings = data.settings;
-    console.log('Supabase Setting', settings)
     if (settings) {
       settings = await refreshToken(settings);
-      console.log('Supabase Setting after refresh token', settings)
       let connectionHeaders = new Headers();
       connectionHeaders.append("Accept", "application/json");
       connectionHeaders.append("Content-Type", "application/json");
       connectionHeaders.append("Authorization", "Bearer " + settings.access_token);
       connectionHeaders.append("Xero-Tenant-Id", settings.tenant_id);
       let contact = await fetchContact(data?.element?.name, settings);
-      console.log("Checking for existing contact: ", contact)
+      console.log("Checking for existing contact: ", contact?.ContactID)
       let contactData;
       if (contact) {
         contactData = {
@@ -176,7 +174,7 @@ const moment = require('moment-timezone'); //moment-timezone
           EmailAddress: data?.email,
         }
       }
-      console.log("Contact Data: ", contactData)
+
       let bodyData = {
         Invoices: [
           {
