@@ -22,9 +22,8 @@ const moment = require('moment-timezone'); //moment-timezone
 
   const refreshApi = async(requestOptions) => {
     console.log('Refresh Api', requestOptions)
-    return await fetch("https://identity.xero.com/connect/token", requestOptions)
-        .then(response => response.json())
-        .catch(error => console.log('error', error))
+    const res = await fetch("https://identity.xero.com/connect/token", requestOptions);
+    return await res.json()
   }
 
   const refreshToken = async(settings) => {
