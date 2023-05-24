@@ -20,6 +20,13 @@ const moment = require('moment-timezone'); //moment-timezone
     return null;
   };
 
+  const refreshApi = async(requestOptions) => {
+    console.log('Refresh Api', requestOptions)
+    return await fetch("https://identity.xero.com/connect/token", requestOptions)
+        .then(response => response.json())
+        .catch(error => console.log('error', error))
+  }
+
   const refreshToken = async(settings) => {
     console.log("refreshing token", settings)
     try {
@@ -41,10 +48,7 @@ const moment = require('moment-timezone'); //moment-timezone
         };
         console.log('urlencoded', urlencoded)
         
-        const response = await fetch("https://identity.xero.com/connect/token", requestOptions)
-        .then(response => response.json())
-        .then(result => console.log(result))
-        .catch(error => console.log('error', error));
+        const response = await refreshApi(requestOptions);
 
         console.log("refreshing token response", response)
 
