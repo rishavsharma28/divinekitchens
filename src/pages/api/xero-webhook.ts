@@ -1,5 +1,5 @@
-import type { NextFetchEvent } from 'next/server';
-import { NextResponse, NextRequest } from 'next/server';
+import type { NextFetchEvent, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getBills } from "./Helpers/XeroHelper";
 import { apisWithVaribales, api } from "./Helpers/MondayHelper";
 import moment from "moment-timezone";
@@ -12,7 +12,9 @@ export const config = {
 };
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const syncBills = async (events:any) => {
+const syncBills = async (req:any) => {
+    const body = await req.json();
+    const events = body.events;
     if (events && events.eventCategory == 'INVOICE'){
         const invoice_id = events.resourceId;
         let url = 'https://api.xero.com/api.xro/2.0/Invoices?';
@@ -83,9 +85,7 @@ const syncBills = async (events:any) => {
 
 
 export default (request: NextRequest,  context: NextFetchEvent ) => {
-    
-    const events =  request?.body?.events?.length ? request?.body?.events[0] : null;
-    context.waitUntil(syncBills(events));
+    context.waitUntil(syncBills(request));
 
     return NextResponse.json({
         data: request,
