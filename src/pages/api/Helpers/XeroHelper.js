@@ -9,7 +9,7 @@ const moment = require('moment-timezone'); //moment-timezone
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
-    supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseKey);
     console.log('fetching supabase settings')
 
     const { data, error } = await supabase
