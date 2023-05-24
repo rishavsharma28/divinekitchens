@@ -5,6 +5,13 @@ import { apisWithVaribales, api } from "./Helpers/MondayHelper";
 import moment from "moment-timezone";
 import { billBoardId, timezone, billGroupId } from "../../../config";
 
+
+export const config = {
+    runtime: 'edge', // this is a pre-requisite
+    regions: ['iad1'], // only execute this function on iad1
+};
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const syncBills = async (events:any) => {
     if (events && events.eventCategory == 'INVOICE'){
         const invoice_id = events.resourceId;
@@ -70,6 +77,7 @@ const syncBills = async (events:any) => {
             
         })
     }
+    await wait(10000);
     return;
 };
 
