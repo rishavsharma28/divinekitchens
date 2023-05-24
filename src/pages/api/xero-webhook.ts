@@ -79,7 +79,7 @@ const syncBills = async (req:any) => {
             
         })
     }
-    await wait(10000);
+    await wait(1000);
     return;
 };
 
