@@ -23,6 +23,8 @@ const refreshToken = async(settings) => {
           body: urlencoded,
         };
 
+        console.log(urlencoded)
+
         const response = await fetch("https://identity.xero.com/connect/token", requestOptions)
           .then(response => response.json())
           .catch(error => console.log('error', error));
