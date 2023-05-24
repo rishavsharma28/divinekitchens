@@ -2,8 +2,23 @@ import moment from 'moment-timezone';
 import { apisWithVaribales } from "./Helpers/MondayHelper";
 import { createXeroInvoice } from "./Helpers/XeroHelper";
 import { invoiceBoardId, mondayApiKey, redisUrl, timezone } from "../../../config";
+import { supabase } from "../../../supabase";
 
 const createInvoice = async (req, res) => {
+
+    console.log('fetching supabase settings')
+
+    const { data, error } = await supabase
+    .from('settings')
+    .select()
+    .eq('id', 1);
+
+    console.log('Supabase settings', data)
+    let settings = null;
+    if (data){
+        settings =  data[0];
+    }
+
     try {
         let todayDate = moment().format("YYYY-MM-DD")
         let query = `query {items_by_column_values (board_id: ${invoiceBoardId}, column_id: \"invoice_sent\", column_value: \"${todayDate}\") {id name group { title } state column_values {id value title text} }}`
@@ -40,6 +55,7 @@ const createInvoice = async (req, res) => {
                     stage: stageId.text,
                     amount: amount.text ? Number(amount.text) : 0,
                     email: emailId.text ? emailId.text : '',
+                    settings,
                 });
                 console.log("Create Invoice response", xeroResponse);
         
