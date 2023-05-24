@@ -4,7 +4,7 @@ import { getBills } from "./Helpers/XeroHelper";
 import { apisWithVaribales, api } from "./Helpers/MondayHelper";
 import moment from "moment-timezone";
 import { billBoardId, timezone, billGroupId } from "../../../config";
-const crypto = require('crypto');
+import crypto from "crypto";
 
 export const config = {
     runtime: 'edge', // this is a pre-requisite
