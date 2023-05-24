@@ -4,7 +4,6 @@ import { getBills } from "./Helpers/XeroHelper";
 import { apisWithVaribales, api } from "./Helpers/MondayHelper";
 import moment from "moment-timezone";
 import { billBoardId, timezone, billGroupId } from "../../../config";
-import crypto from "crypto";
 
 export const config = {
     runtime: 'edge', // this is a pre-requisite
@@ -17,7 +16,6 @@ const syncBills = async (req:any) => {
     const body = await req.json();
     console.log("Body: "+body.toString())
     console.log("Xero Signature: "+req.headers['x-xero-signature'])
-    
     // Create our HMAC hash of the body, using our webhooks key
     let hmac = crypto.createHmac("sha256", process.env.NEXT_PUBLIC_XERO_WEBHOOK_KEY).update(body.toString()).digest("base64");
     console.log("Resp Signature: "+hmac)
