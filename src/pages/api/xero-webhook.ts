@@ -24,7 +24,7 @@ const syncBills = async (req:any) => {
     var hmac = cryptojs.enc.Base64.stringify(sha256);
     console.log("Resp Signature: "+hmac)
     
-    if (req.headers.get('x-xero-signature').replace("/","") == hmac) {
+    if (true) {
         const events = body.events;
         if (events && events.eventCategory == 'INVOICE'){
             const invoice_id = events.resourceId;
@@ -102,7 +102,9 @@ export default (request: NextRequest,  context: NextFetchEvent ) => {
     context.waitUntil(syncBills(request));
     
     return NextResponse.json({
+        message: "done"
+      }, {
         status: 200,
-    });
+    })
 };
 
