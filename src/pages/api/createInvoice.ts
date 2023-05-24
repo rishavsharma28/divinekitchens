@@ -3,17 +3,17 @@ import { apisWithVaribales } from "./Helpers/MondayHelper";
 import { createXeroInvoice } from "./Helpers/XeroHelper";
 import { invoiceBoardId, mondayApiKey, redisUrl, timezone } from "../../../config";
 import { supabase } from "../../../supabase";
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextFetchEvent, NextRequest, NextResponse } from 'next/server';
 
 
 export const config = {
     runtime: 'edge', // this is a pre-requisite
     regions: ['iad1'], // only execute this function on iad1
-  };
- 
-  
-export default async (request: NextRequest) => {
-    
+};
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function fetchInvoices() {
     const { data, error } = await supabase
     .from('settings')
     .select()
@@ -26,20 +26,21 @@ export default async (request: NextRequest) => {
     
     let todayDate = moment().format("YYYY-MM-DD")
     let query = `query {items_by_column_values (board_id: ${invoiceBoardId}, column_id: \"invoice_sent\", column_value: \"${todayDate}\") {id name group { title } state column_values {id value title text} }}`
-    let mondayData = await fetch("https://api.monday.com/v2", {
-            method: 'post',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': mondayApiKey
-            },
-            body: JSON.stringify({
-                'query': query
-            })
+    let mondayData = await fetch("https://api.monday.com/v2", 
+    {
+        method: 'post',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': mondayApiKey
+        },
+        body: JSON.stringify({
+            'query': query
         })
-        .then(data => data.json())
-
+    })
+    .then(data => data.json())
+    
     let boardsData = mondayData.data.items_by_column_values.filter((el:any) => el.group.title == 'Final Deposit' || el.group.title == 'Drawings Deposit' || el.group.title == 'Production Deposit' || el.group.title == 'Delivery Deposit' || el.group.title == 'Stone Measure Deposit');
-
+    
     boardsData.forEach(async (element:any) => {
         console.log("Creating item on xero", element?.name)
         let todayDate = moment().tz(timezone).format("YYYY-MM-DD")
@@ -81,6 +82,17 @@ export default async (request: NextRequest) => {
             console.log( element?.name, ":- Invoice id already exists or Payment is CA")
         }
     });
-    return NextResponse.next();
+    await wait(10000);
+    return;
+}
+
+
+export default (request: NextRequest,  context: NextFetchEvent ) => {
+    
+    context.waitUntil(fetchInvoices().then((json) => console.log({ json })));
+
+    return NextResponse.json({
+        name: `Hello, from ${request.url} I'm now an Edge Function!`,
+    });
 };
 
