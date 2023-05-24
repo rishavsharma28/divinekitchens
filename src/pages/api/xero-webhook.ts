@@ -1,16 +1,11 @@
+import type { NextFetchEvent, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getBills } from "./Helpers/XeroHelper";
 import { apisWithVaribales, api } from "./Helpers/MondayHelper";
 import moment from "moment-timezone";
 import { billBoardId, timezone, billGroupId } from "../../../config";
 
-const Queue = require('bull');
-
-const xeroQueue = new Queue('xeroQueue', 'redis://127.0.0.1:6379');
-
-const syncBills = async (req, res) => {
-
-    const today = moment().tz(timezone);
-    const events =  req?.body?.events?.length ? req?.body?.events[0] : null;
+const syncBills = async (events:any) => {
     if (events && events.eventCategory == 'INVOICE'){
         const invoice_id = events.resourceId;
         let url = 'https://api.xero.com/api.xro/2.0/Invoices?';
@@ -23,7 +18,7 @@ const syncBills = async (req, res) => {
         }
        
         let invoices = await getBills(url);
-        invoices.forEach(async(invoice) => {
+        invoices.forEach(async(invoice:any) => {
             let columnsIdsQuery = `query {boards(ids: ${billBoardId}) {columns {id title}}}`;
             let columnsIds = await api(columnsIdsQuery);
          
@@ -75,7 +70,17 @@ const syncBills = async (req, res) => {
             
         })
     }
-    res.send("Done");
+    return;
 };
 
-export default syncBills;
+
+export default (request: NextRequest,  context: NextFetchEvent ) => {
+    console.log(request?.body)
+    const events =  request?.body?.events?.length ? request?.body?.events[0] : null;
+    context.waitUntil(syncBills(events));
+
+    return NextResponse.json({
+        name: `Hello, from ${request.url} I'm now an Edge Function!`,
+    });
+};
+
