@@ -25,7 +25,8 @@ async function fetchInvoices() {
         settings =  data[0];
     }
     
-    let todayDate = moment().format("YYYY-MM-DD")
+    let todayDate = moment().tz(timezone).format("YYYY-MM-DD")
+    console.log(todayDate)
     let query = `query {items_by_column_values (board_id: ${invoiceBoardId}, column_id: \"invoice_sent\", column_value: \"${todayDate}\") {id name group { title } state column_values {id value title text} }}`
     let mondayData = await fetch("https://api.monday.com/v2", 
     {
