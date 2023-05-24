@@ -1,10 +1,10 @@
-import type { NextFetchEvent, NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
+import type { NextFetchEvent } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { getBills } from "./Helpers/XeroHelper";
 import { apisWithVaribales, api } from "./Helpers/MondayHelper";
 import moment from "moment-timezone";
 import { billBoardId, timezone, billGroupId } from "../../../config";
-
+import { Readable } from 'stream';
 
 export const config = {
     runtime: 'edge', // this is a pre-requisite
@@ -83,12 +83,12 @@ const syncBills = async (events:any) => {
 
 
 export default (request: NextRequest,  context: NextFetchEvent ) => {
-    console.log(request?.body)
+    
     const events =  request?.body?.events?.length ? request?.body?.events[0] : null;
     context.waitUntil(syncBills(events));
 
     return NextResponse.json({
-        name: `Hello, from ${request.url} I'm now an Edge Function!`,
+        data: request,
     });
 };
 
