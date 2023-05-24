@@ -11,7 +11,8 @@ const refreshToken = async(settings) => {
         var myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
         myHeaders.append("Authorization", "Basic " + base64.encode(process.env.NEXT_PUBLIC_XERO_CLIENT_ID + ":" + process.env.NEXT_PUBLIC_XERO_SECRET));
-        console.log('Authorization', "Basic " + base64.encode(process.env.NEXT_PUBLIC_XERO_CLIENT_ID + ":" + process.env.NEXT_PUBLIC_XERO_SECRET));
+        console.log('NEXT_PUBLIC_XERO_CLIENT_ID', process.env.NEXT_PUBLIC_XERO_CLIENT_ID);
+        console.log('NEXT_PUBLIC_XERO_SECRET', process.env.NEXT_PUBLIC_XERO_SECRET);
         var urlencoded = new URLSearchParams();
         urlencoded.append("grant_type", "refresh_token");
         urlencoded.append("refresh_token", settings.refresh_token);
