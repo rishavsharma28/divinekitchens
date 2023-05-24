@@ -129,8 +129,10 @@ const moment = require('moment-timezone'); //moment-timezone
   export const createXeroInvoice = async(data) => {
     console.log("createXeroInvoice helper:  creating invoice on xero")
     let settings = await fetchSettings();
+    console.log('Supabase Setting', settings)
     if (settings) {
       settings = await refreshToken(settings);
+      console.log('Supabase Setting after refresh token', settings)
       let connectionHeaders = new Headers();
       connectionHeaders.append("Accept", "application/json");
       connectionHeaders.append("Content-Type", "application/json");
