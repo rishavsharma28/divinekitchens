@@ -23,7 +23,8 @@ export const fetchSettings = async() =>  {
 const refreshApi = async(requestOptions) => {
   console.log('Refresh Api', requestOptions)
   const res = await fetch("https://identity.xero.com/connect/token", requestOptions);
-  return await res.json()
+  let response = await res.json()
+  console.log('Refresh response', response)
 }
 
 const refreshToken = async(settings) => {
