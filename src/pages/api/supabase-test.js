@@ -79,8 +79,7 @@ const syncBills = async (req, res) => {
     .select()
     .eq('id', 1);
 
-    console.log('Supabase settings', data)
-    const settings = await refreshToken(data)
+    const settings = await refreshToken(data[0])
     res.send(settings)
     
 };
