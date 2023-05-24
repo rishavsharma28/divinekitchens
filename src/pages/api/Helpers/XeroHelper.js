@@ -40,8 +40,12 @@ const moment = require('moment-timezone'); //moment-timezone
           body: urlencoded,
         };
         console.log('urlencoded', urlencoded)
+        
         const response = await fetch("https://identity.xero.com/connect/token", requestOptions)
-          .then(response => response.json())
+          .then(response => {
+            console.log('response', response.json())
+            return response.json()
+          })
           .catch(error => console.log('error', error));
 
         console.log("refreshing token response", response)
