@@ -108,4 +108,3 @@ export default (request: NextRequest,  context: NextFetchEvent ) => {
         status: 200,
     })
 };
-

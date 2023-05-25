@@ -4,23 +4,23 @@ import { timezone } from "../../../../config";
 
 const moment = require('moment-timezone'); //moment-timezone
 
-export const fetchSettings = async() =>  {
+export const fetchSettings = async () => {
   console.log('fetching supabase settings')
-  
+
   const { data, error } = await supabase
-  .from('settings')
-  .select()
-  .eq('id', 1);
-  
+    .from('settings')
+    .select()
+    .eq('id', 1);
+
   console.log('Supabase settings', data)
-  
-  if (data){
+
+  if (data) {
     return data[0];
   }
   return null;
 };
 
-const refreshApi = async(requestOptions) => {
+const refreshApi = async (requestOptions) => {
   console.log('Refresh Api', requestOptions)
   const res = await fetch("https://identity.xero.com/connect/token", requestOptions);
   let response = await res.json()
@@ -28,41 +28,41 @@ const refreshApi = async(requestOptions) => {
   return response;
 }
 
-const refreshToken = async(settings) => {
+const refreshToken = async (settings) => {
   if (settings) {
     console.log('Calling reset token');
     var myHeaders = new Headers();
     myHeaders.append("Accept", "*");
     myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
     myHeaders.append("Authorization", "Basic " + base64.encode(process.env.NEXT_PUBLIC_XERO_CLIENT_ID + ":" + process.env.NEXT_PUBLIC_XERO_SECRET));
-    
+
     var urlencoded = new URLSearchParams();
     urlencoded.append("grant_type", "refresh_token");
     urlencoded.append("refresh_token", settings.refresh_token);
-    
+
     var requestOptions = {
       method: 'POST',
       headers: myHeaders,
       body: urlencoded,
     };
-    
+
     const response = await refreshApi(requestOptions);
-    
+
     console.log("refreshing token response", response)
-    
+
     const time = moment().tz(timezone).format('YYYY-MM-DD HH:mm:ss');
     const { error } = await supabase
-    .from('settings')
-    .upsert({
-      id: 1,
-      access_token: response.access_token,
-      refresh_token: response.refresh_token,
-      token_last_refreshed: time
-    })
-    
+      .from('settings')
+      .upsert({
+        id: 1,
+        access_token: response.access_token,
+        refresh_token: response.refresh_token,
+        token_last_refreshed: time
+      })
+
     if (error) {
       console.log("supabase error on refresh", error)
-      
+
       return {
         error: true,
       }
@@ -73,7 +73,7 @@ const refreshToken = async(settings) => {
         token_last_refreshed: time,
         tenant_id: settings.tenant_id
       })
-      
+
       return {
         access_token: response.access_token,
         refresh_token: response.refresh_token,
@@ -84,10 +84,10 @@ const refreshToken = async(settings) => {
   } else {
     console.log('Calling reset else part');
   }
-  
+
 }
 
-export const getBills = async(url) => {
+export const getBills = async (url) => {
   let settings = await fetchSettings();
   if (settings) {
     settings = await refreshToken(settings);
@@ -104,19 +104,19 @@ export const getBills = async(url) => {
   if (!url) {
     url = "https://api.xero.com/api.xro/2.0/Invoices?";
   }
-  
-  
+
+
   const response = await fetch(url, requestOptions)
-  .then(res => res.json())
-  .catch(error => console.log('error', error));
+    .then(res => res.json())
+    .catch(error => console.log('error', error));
   if (response && response.Invoices) {
     return response.Invoices;
   }
   return [];
-  
+
 }
 
-export const fetchContact = async(name, settings) => {
+export const fetchContact = async (name, settings) => {
   let connectionHeaders = new Headers();
   connectionHeaders.append("Accept", "application/json");
   connectionHeaders.append("Content-Type", "application/json");
@@ -127,9 +127,9 @@ export const fetchContact = async(name, settings) => {
     headers: connectionHeaders,
   };
   const response = await fetch('https://api.xero.com/api.xro/2.0/Contacts?where=name="' + name + '"', requestOptions)
-  .then(res => res.json())
-  .catch(error => console.log('error', error));
-  
+    .then(res => res.json())
+    .catch(error => console.log('error', error));
+
   if (response.Contacts && response.Contacts.length) {
     return response.Contacts[0];
   }
@@ -138,7 +138,7 @@ export const fetchContact = async(name, settings) => {
 
 
 
-export const createXeroInvoice = async(data) => {
+export const createXeroInvoice = async (data) => {
   console.log("createXeroInvoice helper:  creating invoice on xero")
   let settings = data.settings;
   if (settings) {
@@ -162,7 +162,7 @@ export const createXeroInvoice = async(data) => {
         EmailAddress: data?.email,
       }
     }
-    
+
     let bodyData = {
       Invoices: [
         {
@@ -186,20 +186,20 @@ export const createXeroInvoice = async(data) => {
         }
       ]
     };
-    
-    
+
+
     let requestOptions = {
       method: 'POST',
       headers: connectionHeaders,
       body: JSON.stringify(bodyData),
     };
-    
+
     const response = await fetch('https://api.xero.com/api.xro/2.0/Invoices', requestOptions)
-    .then(res => res.json())
-    .catch(error => console.log('error', error));
-    
+      .then(res => res.json())
+      .catch(error => console.log('error', error));
+
     console.log("Created invoice response: ", response)
-    
+
     return response
   } else {
     return null;
